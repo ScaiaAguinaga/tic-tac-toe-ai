@@ -51,10 +51,10 @@ class GameStatus:
 
 	def get_moves(self):
 		moves = []
-		"""
-        YOUR CODE HERE TO ADD ALL THE NON EMPTY CELLS TO MOVES VARIABLES AND RETURN IT TO BE USE BY YOUR
-        MINIMAX OR NEGAMAX FUNCTIONS
-        """
+		for row_index, row in enumerate(self.board_state):
+			for col_index, col in enumerate(row):
+				if self.board_state[row_index][col_index] == "":
+					moves.append([row_index, col_index])
 		return moves
 
 
