@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import numpy
 
 
 class GameStatus:
@@ -45,7 +46,8 @@ class GameStatus:
           return False
     # If board is full returns true
     return True
-
+  
+  # Calculates the scores 
   def get_scores(self, terminal):
     """
         YOUR CODE HERE TO CALCULATE THE SCORES. MAKE SURE YOU ADD THE SCORE FOR EACH PLAYER BY CHECKING 
@@ -59,6 +61,49 @@ class GameStatus:
     cols = len(self.board_state[0])
     scores = 0
     check_point = 3 if terminal else 2
+
+    # Horizontal triplets
+    for row in self.board_state:
+      for col in range(cols - 2):
+        triplet = row[col:col + 3]
+        if triplet[0] == triplet[1] == triplet[2] != 0:
+          if triplet[0] == 1:
+            scores -= 1
+          if triplet[0] == -1:
+            scores += 1
+
+    # Vertical triplets
+    for col in range(cols):
+      for row in range(rows - 2):
+        triplet = [self.board_state[row + i][col] for i in range(3)]
+        if triplet[0] == triplet[1] == triplet[2] != 0:
+          if triplet[0] == 1:
+            scores -= 1
+          if triplet[0] == -1:
+            scores += 1
+
+    # Diagonal triplets
+    # Top left -> bottom right
+    for row in range(rows - 2):
+      for col in range(cols - 2):
+        triplet = [self.board_state[row + i][col + i] for i in range(3)]
+        if triplet[0] == triplet[1] == triplet[2] != 0:
+          if triplet[0] == 1:
+            scores -= 1
+          if triplet[0] == -1:
+            scores += 1
+
+    # Top right -> bottom left
+    for row in range(rows - 2):
+      for col  in range(2, cols):
+        triplet = [self.board_state[row + i][col - i] for i in range(3)]
+        if triplet[0] == triplet[1] == triplet[2] != 0:
+          if triplet[0] == 1:
+            scores -= 1
+          if triplet[0] == -1:
+            scores += 1
+
+    return scores
     
       
 
@@ -89,3 +134,4 @@ class GameStatus:
     x, y = move[0], move[1]
     new_board_state[x,y] = 1 if self.turn_O else -1
     return GameStatus(new_board_state, not self.turn_O)
+  

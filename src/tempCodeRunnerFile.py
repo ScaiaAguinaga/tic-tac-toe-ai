@@ -1,1 +1,1 @@
-len
+    print(game1.board_state)
