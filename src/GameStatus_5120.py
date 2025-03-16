@@ -134,4 +134,3 @@ class GameStatus:
     x, y = move[0], move[1]
     new_board_state[x,y] = 1 if self.turn_O else -1
     return GameStatus(new_board_state, not self.turn_O)
-  
