@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import numpy
-
 
 class GameStatus:
 
@@ -46,17 +44,11 @@ class GameStatus:
           return False
     # If board is full returns true
     return True
-  
+
+
+
   # Calculates the scores 
-  def get_scores(self, terminal):
-    """
-        YOUR CODE HERE TO CALCULATE THE SCORES. MAKE SURE YOU ADD THE SCORE FOR EACH PLAYER BY CHECKING 
-        EACH TRIPLET IN THE BOARD IN EACH DIRECTION (HORIZONAL, VERTICAL, AND ANY DIAGONAL DIRECTION)
-        
-        YOU SHOULD THEN RETURN THE CALCULATED SCORE WHICH CAN BE POSITIVE (HUMAN PLAYER WINS),
-        NEGATIVE (AI PLAYER WINS), OR 0 (DRAW)
-        
-        """        
+  def get_scores(self, terminal):   
     rows = len(self.board_state)
     cols = len(self.board_state[0])
     scores = 0
@@ -67,20 +59,14 @@ class GameStatus:
       for col in range(cols - 2):
         triplet = row[col:col + 3]
         if triplet[0] == triplet[1] == triplet[2] != 0:
-          if triplet[0] == 1:
-            scores -= 1
-          if triplet[0] == -1:
-            scores += 1
+          scores += triplet[0]
 
     # Vertical triplets
     for col in range(cols):
       for row in range(rows - 2):
         triplet = [self.board_state[row + i][col] for i in range(3)]
         if triplet[0] == triplet[1] == triplet[2] != 0:
-          if triplet[0] == 1:
-            scores -= 1
-          if triplet[0] == -1:
-            scores += 1
+          scores += triplet[0]
 
     # Diagonal triplets
     # Top left -> bottom right
@@ -88,20 +74,14 @@ class GameStatus:
       for col in range(cols - 2):
         triplet = [self.board_state[row + i][col + i] for i in range(3)]
         if triplet[0] == triplet[1] == triplet[2] != 0:
-          if triplet[0] == 1:
-            scores -= 1
-          if triplet[0] == -1:
-            scores += 1
+          scores += triplet[0]
 
     # Top right -> bottom left
     for row in range(rows - 2):
       for col  in range(2, cols):
         triplet = [self.board_state[row + i][col - i] for i in range(3)]
         if triplet[0] == triplet[1] == triplet[2] != 0:
-          if triplet[0] == 1:
-            scores -= 1
-          if triplet[0] == -1:
-            scores += 1
+          scores += triplet[0]
 
     return scores
     

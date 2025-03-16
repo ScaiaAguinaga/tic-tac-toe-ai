@@ -9,6 +9,7 @@ def minimax(game_state: GameStatus, depth: int, maximizingPlayer: bool, alpha=fl
         newScores = game_state.get_scores(terminal)
         return newScores, None
     
+    
     # If maximizing player look for max, otherwise look for min
     if maximizingPlayer:
         max_eval = float('-inf')
