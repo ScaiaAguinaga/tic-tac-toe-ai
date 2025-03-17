@@ -63,21 +63,18 @@ class RandomBoardTicTacToe:
         pygame.display.set_caption("Tic-Tac-Toe Large Board")
         self.screen.fill(self.BLACK)
 
-        # Draw control panel background
         pygame.draw.rect(self.screen, self.WHITE, (0, 0, self.width, self.controls_height))
         pygame.draw.rect(self.screen, self.BLACK, (0, 0, self.width, self.controls_height), 2)
         
-        # Set up fonts
         font_title = pygame.font.SysFont("Times New Roman", 32)
         font = pygame.font.SysFont("Times New Roman", 22)
         
-        # Draw title
+        #title
         title_text = font_title.render("Tic-Tac-Toe Large Board", True, self.BLACK)
         self.screen.blit(title_text, (20, 10))
         
-        # Draw radio button options
+
         options = [
-            # Label, x, y, condition
             ["Select human player", 20, 50, None],
             ["Nought (O)", 45, 75, self.player_symbol == "O"],
             ["Cross (X)", 45, 100, self.player_symbol == "X"],
@@ -88,9 +85,8 @@ class RandomBoardTicTacToe:
             ["Human vs computer", 45, 150, self.game_mode == "player_vs_ai"]
         ]
         
-        # Draw all text labels and radio buttons
         for i, (text, x, y, condition) in enumerate(options):
-            # Skip drawing radio buttons for headers
+            
             if condition is not None:
                 radio_x = x - 15 if x > 50 else 30
                 if condition:
@@ -101,20 +97,20 @@ class RandomBoardTicTacToe:
             label = font.render(text, True, self.BLACK)
             self.screen.blit(label, (x, y))
         
-        # Draw board size selector
+        #board size pick
         size_text = font.render("Board size:", True, self.BLACK)
         self.screen.blit(size_text, (380, 50))
         
-        # Draw dropdown box
+        #dropdown box
         pygame.draw.rect(self.screen, (220, 220, 220), (380, 75, 80, 30))
         pygame.draw.rect(self.screen, self.BLACK, (380, 75, 80, 30), 1)
         size_value = font.render(f"{self.GRID_SIZE}x{self.GRID_SIZE}", True, (255, 0, 0))
         self.screen.blit(size_value, (386, 80))
         
-        # Draw dropdown arrow
+        # arrow
         pygame.draw.polygon(self.screen, self.BLUE, [(430, 85), (440, 85), (435, 95)])
         
-        # Draw dropdown options if open
+        # draws dropdown options
         if self.dropdown_open:
             for i, size in enumerate(self.dropdown_options):
                 option_y = 105 + i * 30
@@ -123,7 +119,7 @@ class RandomBoardTicTacToe:
                 option_text = font.render(f"{size}x{size}", True, self.BLACK)
                 self.screen.blit(option_text, (386, option_y + 5))
         
-        # Draw game status
+        #inits game status
         status_items = [
             [f"Winner: {self.winner if self.winner else 'None'}", 230, 135],
             [f"Scores (H: {self.human_score}, C: {self.computer_score})", 230, 160]
@@ -133,16 +129,16 @@ class RandomBoardTicTacToe:
             status = font.render(text, True, self.BLACK)
             self.screen.blit(status, (x, y))
         
-        # Draw start button
+        # start button
         pygame.draw.rect(self.screen, self.BLUE, (430, 160, 120, 30))
         start_text = font.render("Start game", True, self.WHITE)
         self.screen.blit(start_text, (440, 165))
         
-        # Draw the game grid
+        #creates the game grid
         grid_width = self.GRID_SIZE * (self.WIDTH + self.MARGIN) - self.MARGIN
         left_margin = (self.width - grid_width) / 2
         
-        # Draw grid cells
+        #creates cells
         for row in range(self.GRID_SIZE):
             for column in range(self.GRID_SIZE):
                 pygame.draw.rect(self.screen, self.WHITE,
