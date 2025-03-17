@@ -24,7 +24,6 @@ mode = "player_vs_ai"
 
 class RandomBoardTicTacToe:
     def __init__(self, size = (600, 600)):
-
         self.size = self.width, self.height = size
         # Define some colors
         self.BLACK = (0, 0, 0)
@@ -55,6 +54,11 @@ class RandomBoardTicTacToe:
         self.grid_top = 0
         self.grid_size = 0
         self.cell_size = 0
+
+        # Initialize tracking variables
+        self.last_winner = "########"
+        self.human_score = 0
+        self.computer_score = 0
 
         # Initialize pygame
         pygame.init()
@@ -123,10 +127,10 @@ class RandomBoardTicTacToe:
             pygame.draw.circle(self.screen, self.BLACK, (30, 180), 4)
         
         # Winner and scores display
-        winner_text = font.render("Winner: #########", True, self.BLACK)
+        winner_text = font.render(f"Winner: {self.last_winner}", True, self.BLACK)
         self.screen.blit(winner_text, (300, 100))
         
-        scores_text = font.render("Scores (Human: ##, Computer: ##)", True, self.BLACK)
+        scores_text = font.render(f"Scores (Human: {self.human_score}, Computer: {self.computer_score})", True, self.BLACK)
         self.screen.blit(scores_text, (300, 130))
         
         # Start game button
@@ -215,22 +219,17 @@ class RandomBoardTicTacToe:
 
 
     def play_ai(self):
-        # Get the best move using minimax or negamax
         if hasattr(self, 'algorithm') and self.algorithm == "negamax":
-            # Use negamax algorithm with appropriate turn multiplier
             turn_multiplier = 1 if not self.game_state.turn_O else -1
             score, move = negamax(self.game_state, 4, turn_multiplier)
         else:
-            # For minimax, set maximizingPlayer correctly based on turn
             ai_is_o = self.human_symbol == "X"
             maximizing = (self.game_state.turn_O and not ai_is_o) or (not self.game_state.turn_O and ai_is_o)
             score, move = minimax(self.game_state, 4, maximizing)
         
         if move:
-            # Make the move
             self.move(move)
             
-            # Draw the AI's symbol - should be opposite of human's symbol
             if self.human_symbol == "O":
                 self.draw_cross(move[0], move[1])
             else:
@@ -242,16 +241,38 @@ class RandomBoardTicTacToe:
         terminal = self.game_state.is_terminal()
         if terminal:
             scores = self.game_state.get_scores(terminal)
-            # Use the winner from game_state if available
-            if self.game_state.winner:
-                winner = self.game_state.winner
+            
+            # Determine winner based on final board state
+            if scores > 0:
+                winner = "O"
+            elif scores < 0:
+                winner = "X"
             else:
                 winner = "Draw"
             
-            human_score = scores if self.human_symbol == "O" else -scores
-            computer_score = -human_score
+            # Update last_winner
+            self.last_winner = winner
             
-            pygame.display.set_caption(f"Game Over! Winner: {winner}, Scores - Human: {human_score}, Computer: {computer_score}")
+            # Update scores based on who won
+            if winner != "Draw":
+                if (winner == "O" and self.human_symbol == "O") or (winner == "X" and self.human_symbol == "X"):
+                    self.human_score += 1
+                    print(f"Human won! Score increased to {self.human_score}")
+                else:
+                    self.computer_score += 1
+                    print(f"Computer won! Score increased to {self.computer_score}")
+            
+            # Update the display
+            font = pygame.font.SysFont('Arial', 18)
+            winner_text = font.render(f"Winner: {self.last_winner}", True, self.BLACK)
+            self.screen.fill(self.WHITE, (300, 100, 200, 25))
+            self.screen.blit(winner_text, (300, 100))
+            
+            scores_text = font.render(f"Scores (Human: {self.human_score}, Computer: {self.computer_score})", True, self.BLACK)
+            self.screen.fill(self.WHITE, (300, 130, 250, 25))
+            self.screen.blit(scores_text, (300, 130))
+            
+            pygame.display.update()
 
 
 
