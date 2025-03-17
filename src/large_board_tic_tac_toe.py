@@ -8,7 +8,6 @@ mode = "player_vs_ai"
 
 class RandomBoardTicTacToe:
     def __init__(self):
-        pygame.init()
         
         #this determines window size
         self.width = 600
@@ -17,7 +16,7 @@ class RandomBoardTicTacToe:
         self.screen = pygame.display.set_mode(self.size)
         pygame.display.set_caption("Tic-Tac-Toe Large Board")
         
-        # Define colors
+        # Define some colors
         self.BLACK = (0, 0, 0)
         self.WHITE = (255, 255, 255)
         self.GRAY = (200, 200, 200)
@@ -25,7 +24,7 @@ class RandomBoardTicTacToe:
         self.RED = (255, 0, 0)
         self.BLUE = (0, 0, 255)
 
-        #this determines size of the grid
+        #grid size
         self.GRID_SIZE = 4
         self.OFFSET = 5
 
@@ -33,10 +32,11 @@ class RandomBoardTicTacToe:
         self.CIRCLE_COLOR = (0, 0, 255)
         self.CROSS_COLOR = (255, 0, 0)
 
-        #this determines size of the cell in the grid
+        # This sets the WIDTH and HEIGHT of each grid location
         self.WIDTH = (self.size[0] * 0.9) / self.GRID_SIZE - self.OFFSET
         self.HEIGHT = (self.size[1] - 200) / self.GRID_SIZE - self.OFFSET
 
+        #This sets the margin between each cell
         self.MARGIN = 5
         
         self.dropdown_open = False
@@ -53,15 +53,17 @@ class RandomBoardTicTacToe:
         self.controls_height = 200
         
         #this resets/initializes the board
+        pygame.init()
         self.game_reset()
 
     #this draws the game
     def draw_game(self):
-        """Draw the game interface including controls and board"""
+        # Create a 2 dimensional array using the column and row variables
         pygame.init()
         self.screen = pygame.display.set_mode(self.size)
         pygame.display.set_caption("Tic-Tac-Toe Large Board")
         self.screen.fill(self.BLACK)
+        # Draw the Grid
 
         pygame.draw.rect(self.screen, self.WHITE, (0, 0, self.width, self.controls_height))
         pygame.draw.rect(self.screen, self.BLACK, (0, 0, self.width, self.controls_height), 2)
@@ -313,41 +315,63 @@ class RandomBoardTicTacToe:
 
     def move(self, move):
         x, y = move
+        new_board_state = self.game_state.board_state.copy()
+        
         if self.game_state.turn_O:
-            self.game_state.board_state[y][x] = 1
+            new_board_state[y][x] = 1
         else:
-            self.game_state.board_state[y][x] = -1
-            
-        self.game_state = self.game_state.get_new_state(move)
-
-
+            new_board_state[y][x] = -1
+        
+        self.game_state = GameStatus(new_board_state, not self.game_state.turn_O)
 
     def play_ai(self):
-        
-        current_state = self.game_state
-        
+        current_game_state = GameStatus(self.board_state.copy(), not (self.player_symbol == "O"))
+
+        for move in current_game_state.get_moves():
+            test_state = current_game_state.get_new_state(move)
+            if test_state.is_terminal() and test_state.winner == self.player_symbol:
+                row, col = move
+                self.board_state[row][col] = -1 if self.player_symbol == "O" else 1
+                self.game_state = GameStatus(self.board_state.copy(), not self.game_state.turn_O)
+                self.draw_game()
+
+                return (col, row)
+        depth = 6 if self.GRID_SIZE == 3 else 8 if self.GRID_SIZE == 4 else 6
+    
         if self.use_minimax:
-            maximizing_player = self.player_symbol == "X"
-            score, move = minimax(current_state, depth=4, maximizingPlayer=maximizing_player)
+            print(f"Using Minimax algorithm with depth {depth}")
+            _, best_move = minimax(current_game_state, depth, current_game_state.turn_O)
         else:
-            turn_multiplier = 1 if current_state.turn_O else -1
-            score, move = negamax(current_state, depth=4, turn_multiplier=turn_multiplier)
-        
-        if move:
-            x, y = move
-            self.move(move)
+            print(f"Using Negamax algorithm with depth {depth}")
+            turn_multiplier = 1 if current_game_state.turn_O else -1
+            _, best_move = negamax(current_game_state, depth, turn_multiplier)
+    
+        if best_move is not None:
+            row, col = best_move 
+
+            if self.player_symbol == "O":  
+                self.board_state[row][col] = -1
+                self.draw_cross(col, row)  
+            else:  
+                self.board_state[row][col] = 1
+                self.draw_circle(col, row)  
             
-            if self.player_symbol == "X":
-                self.draw_circle(x, y)
-            else:
-                self.draw_cross(x, y)
+            # Update the game state with the new board
+            self.game_state = GameStatus(self.board_state.copy(), not self.game_state.turn_O)
+            
+            pygame.display.update()
 
+            if self.is_game_over():
+                self.draw_game()
+                pygame.time.delay(2000)
+                return None
 
+   
 
     def game_reset(self):
         self.winner = None
         
-        board_zeros = np.zeros((self.GRID_SIZE, self.GRID_SIZE))
+        board_zeros = [[0] * self.GRID_SIZE for _ in range(self.GRID_SIZE)]
         
         self.game_state = GameStatus(board_zeros, True)
         
@@ -370,8 +394,7 @@ class RandomBoardTicTacToe:
         clock = pygame.time.Clock()
         
         self.board_state = np.zeros((self.GRID_SIZE, self.GRID_SIZE))
-        
-        self.game_reset()
+        self.game_state = GameStatus(self.board_state.copy(), True)
         
         player_symbol = self.player_symbol
         ai_symbol = "X" if player_symbol == "O" else "O"
@@ -379,6 +402,7 @@ class RandomBoardTicTacToe:
         current_turn = "O"
         
         self.draw_game()
+        pygame.display.set_caption(f"Tic Tac Toe - {current_turn}'s turn")
         
         while not done:
             for event in pygame.event.get():
@@ -398,148 +422,53 @@ class RandomBoardTicTacToe:
                         column = int(grid_x // (self.WIDTH + self.MARGIN))
                         row = int(grid_y // (self.HEIGHT + self.MARGIN))
                         
-                        if 0 <= row < self.GRID_SIZE and 0 <= column < self.GRID_SIZE:
-                            if self.board_state[row][column] == 0:
-                                if current_turn == "O":
-                                    self.board_state[row][column] = 1
-                                    self.draw_circle(column, row)
+                        if (0 <= row < self.GRID_SIZE and 0 <= column < self.GRID_SIZE and 
+                            self.board_state[row][column] == 0):
+                            
+                            self.board_state[row][column] = 1 if current_turn == "O" else -1
+                            if current_turn == "O":
+                                self.draw_circle(column, row)
+                            else:
+                                self.draw_cross(column, row)
+                            
+                            self.game_state = GameStatus(self.board_state.copy(), not self.game_state.turn_O)
+                            
+                            pygame.display.update()
+                            
+                            if self.is_game_over():
+                                self.draw_game()
+                                if self.winner == "Draw":
+                                    pygame.display.set_caption("Game Over! It's a Draw!")
                                 else:
-                                    self.board_state[row][column] = -1
-                                    self.draw_cross(column, row)
+                                    pygame.display.set_caption(f"Game Over! {self.winner} wins!")
+                                pygame.time.delay(2000)
+                                done = True
+                                break
                                 
-                                pygame.display.update()
+                            
+                            current_turn = "X" if current_turn == "O" else "O"
+                            pygame.display.set_caption(f"Tic Tac Toe - {current_turn}'s turn")
+                            
+                            if mode == "player_vs_ai" and current_turn == ai_symbol:
+                                pygame.time.delay(500)
+                                self.play_ai()
                                 
-                                if self.win_check():
+                                if self.is_game_over():
                                     self.draw_game()
                                     if self.winner == "Draw":
                                         pygame.display.set_caption("Game Over! It's a Draw!")
                                     else:
                                         pygame.display.set_caption(f"Game Over! {self.winner} wins!")
                                     pygame.time.delay(2000)
-                                    return
+                                    return  # Return from the function completely instead of just breaking
                                 
                                 current_turn = "X" if current_turn == "O" else "O"
                                 pygame.display.set_caption(f"Tic Tac Toe - {current_turn}'s turn")
-                                
-                                if mode == "player_vs_ai" and current_turn == ai_symbol:
-                                    pygame.time.delay(500)
-                                    
-                                    ai_move = self.get_ai_move()
-                                    ai_col, ai_row = ai_move
-                                    
-                                    if current_turn == "O":
-                                        self.board_state[ai_row][ai_col] = 1
-                                        self.draw_circle(ai_col, ai_row)
-                                    else:
-                                        self.board_state[ai_row][ai_col] = -1
-                                        self.draw_cross(ai_col, ai_row)
-                                    
-                                    pygame.display.update()
-                                    
-                                    if self.win_check():
-                                        self.draw_game()
-                                        if self.winner == "Draw":
-                                            pygame.display.set_caption("Game Over! It's a Draw!")
-                                        else:
-                                            pygame.display.set_caption(f"Game Over! {self.winner} wins!")
-                                        pygame.time.delay(2000)
-                                        return
-                                    
-                                    current_turn = "X" if current_turn == "O" else "O"
-                                    pygame.display.set_caption(f"Tic Tac Toe - {current_turn}'s turn")
-                            else:
-                                print(f"Cell at ({row}, {column}) is not empty: {self.board_state[row][column]}")
-                                print("Full board state:")
-                                for r in range(self.GRID_SIZE):
-                                    print(self.board_state[r])
-                        else:
-                            print(f"Click outside grid bounds: row={row}, col={column}")
             
             pygame.display.update()
             clock.tick(60)
     
-    def win_check(self):
-        for row in range(self.GRID_SIZE):
-            if all(self.board_state[row][col] == 1 for col in range(self.GRID_SIZE)):
-                self.winner = "O"
-                if self.player_symbol == "O":
-                    self.human_score += 1
-                else:
-                    self.computer_score += 1
-                return True
-            elif all(self.board_state[row][col] == -1 for col in range(self.GRID_SIZE)):
-                self.winner = "X"
-                if self.player_symbol == "X":
-                    self.human_score += 1
-                else:
-                    self.computer_score += 1
-                return True
-        
-        for col in range(self.GRID_SIZE):
-            if all(self.board_state[row][col] == 1 for row in range(self.GRID_SIZE)):
-                self.winner = "O"
-                if self.player_symbol == "O":
-                    self.human_score += 1
-                else:
-                    self.computer_score += 1
-                return True
-            elif all(self.board_state[row][col] == -1 for row in range(self.GRID_SIZE)):
-                self.winner = "X"
-                if self.player_symbol == "X":
-                    self.human_score += 1
-                else:
-                    self.computer_score += 1
-                return True
-        
-        if all(self.board_state[i][i] == 1 for i in range(self.GRID_SIZE)):
-            self.winner = "O"
-            if self.player_symbol == "O":
-                self.human_score += 1
-            else:
-                self.computer_score += 1
-            return True
-        elif all(self.board_state[i][i] == -1 for i in range(self.GRID_SIZE)):
-            self.winner = "X"
-            if self.player_symbol == "X":
-                self.human_score += 1
-            else:
-                self.computer_score += 1
-            return True
-        
-        if all(self.board_state[i][self.GRID_SIZE - 1 - i] == 1 for i in range(self.GRID_SIZE)):
-            self.winner = "O"
-            if self.player_symbol == "O":
-                self.human_score += 1
-            else:
-                self.computer_score += 1
-            return True
-        elif all(self.board_state[i][self.GRID_SIZE - 1 - i] == -1 for i in range(self.GRID_SIZE)):
-            self.winner = "X"
-            if self.player_symbol == "X":
-                self.human_score += 1
-            else:
-                self.computer_score += 1
-            return True
-        
-        if all(self.board_state[row][col] != 0 for row in range(self.GRID_SIZE) for col in range(self.GRID_SIZE)):
-            self.winner = "Draw"
-            return True
-        
-        return False
     
-    def get_ai_move(self):
-        """Get a move for the AI player (simple random strategy)"""
-        empty_cells = []
-        for row in range(self.GRID_SIZE):
-            for col in range(self.GRID_SIZE):
-                if self.board_state[row][col] == 0:
-                    empty_cells.append((col, row))
-        
-        if empty_cells:
-            return random.choice(empty_cells)
-        
-        return None
-
 if __name__ == "__main__":
     tictactoegame = RandomBoardTicTacToe()
     running = True
@@ -590,6 +519,15 @@ if __name__ == "__main__":
                     
                     elif 430 <= pos[0] <= 550 and 160 <= pos[1] <= 190:
                         tictactoegame.play_game(tictactoegame.game_mode)
+                elif 220 <= pos[0] <= 245:
+                    if 75 <= pos[1] <= 95:
+                        tictactoegame.use_minimax = True
+                        tictactoegame.draw_game()
+                        print("Selected Minimax algorithm from multiAgents.py")
+                    elif 100 <= pos[1] <= 120:
+                        tictactoegame.use_minimax = False
+                        tictactoegame.draw_game()
+                        print("Selected Negamax algorithm from multiAgents.py")
         
         
         pygame.display.update()
