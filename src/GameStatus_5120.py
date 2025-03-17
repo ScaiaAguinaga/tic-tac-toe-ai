@@ -87,41 +87,42 @@ class GameStatus:
     
   # Calculates the negamax scores
   def get_negamax_scores(self, terminal):
-    rows = len(self.board_state)
-    cols = len(self.board_state[0])
-    scores = 0
-    check_point = 3 if terminal else 2
-        
-    # Horizontal triplets
-    for row in self.board_state:
-        for col in range(cols - 2):
-            triplet = row[col:col + 3]
-            if triplet[0] == triplet[1] == triplet[2] != 0:
-                scores += 100 if triplet[0] == 1 else -100
+      rows = len(self.board_state)
+      cols = len(self.board_state[0])
+      scores = 0
+      
+      # Horizontal triplets
+      for row in self.board_state:
+          for col in range(cols - 2):
+              triplet = row[col:col + 3]
+              if triplet[0] == triplet[1] == triplet[2] != 0:
+                  scores += triplet[0]
 
-    # Vertical triplets
-    for col in range(cols):
-        for row in range(rows - 2):
-            triplet = [self.board_state[row + i][col] for i in range(3)]
-            if triplet[0] == triplet[1] == triplet[2] != 0:
-                scores += 100 if triplet[0] == 1 else -100
+      # Vertical triplets
+      for col in range(cols):
+          for row in range(rows - 2):
+              triplet = [self.board_state[row + i][col] for i in range(3)]
+              if triplet[0] == triplet[1] == triplet[2] != 0:
+                  scores += triplet[0]
 
-    # Diagonal triplets
-    # Top left -> bottom right
-    for row in range(rows - 2):
-        for col in range(cols - 2):
-            triplet = [self.board_state[row + i][col + i] for i in range(3)]
-            if triplet[0] == triplet[1] == triplet[2] != 0:
-                scores += 100 if triplet[0] == 1 else -100
+      # Diagonal triplets
+      # Top left -> bottom right
+      for row in range(rows - 2):
+          for col in range(cols - 2):
+              triplet = [self.board_state[row + i][col + i] for i in range(3)]
+              if triplet[0] == triplet[1] == triplet[2] != 0:
+                  scores += triplet[0]
 
-    # Top right -> bottom left
-    for row in range(rows - 2):
-        for col in range(2, cols):
-            triplet = [self.board_state[row + i][col - i] for i in range(3)]
-            if triplet[0] == triplet[1] == triplet[2] != 0:
-                scores += 100 if triplet[0] == 1 else -100
+      # Top right -> bottom left
+      for row in range(rows - 2):
+          for col in range(2, cols):
+              triplet = [self.board_state[row + i][col - i] for i in range(3)]
+              if triplet[0] == triplet[1] == triplet[2] != 0:
+                  scores += triplet[0]
 
-    return scores
+      # Apply negation based on the player perspective
+      player_modifier = 1 if self.turn_O else -1
+      return scores * player_modifier
       
   # Returns all the open moves for a given board
   def get_moves(self):
